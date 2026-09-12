@@ -1,0 +1,7 @@
+{
+  "name": "Personal_Expense_Tracker",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
