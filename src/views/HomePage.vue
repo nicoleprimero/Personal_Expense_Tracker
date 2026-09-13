@@ -3,6 +3,11 @@
     <ion-header>
       <ion-toolbar color="primary">
         <ion-title>Personal Expense Tracker</ion-title>
+        <ion-buttons slot="end">
+          <ion-chip :color="isConnected ? 'success' : 'danger'">
+            <ion-label>{{ isConnected ? 'Connected' : 'Offline' }}</ion-label>
+          </ion-chip>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
@@ -26,33 +31,59 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { 
-  IonPage, IonHeader, IonToolbar, IonTitle, IonContent 
+  IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonChip, IonLabel, IonButtons 
 } from '@ionic/vue';
 
 import ExpenseForm from '../components/ExpenseForm.vue';
 import type { Expense } from '../components/ExpenseForm.vue';
 import ExpenseList from '../components/ExpenseList.vue';
+import {
+  checkFirebaseConnection,
+  deleteExpense,
+  saveExpense,
+  subscribeToExpenses,
+} from '../firebase';
 
 const expenses = ref<Expense[]>([]);
 const isEditing = ref(false);
 const editingId = ref<string | null>(null);
 const selectedExpense = ref<Expense | null>(null);
+const isConnected = ref(false);
 
-const handleSaveExpense = (expenseData: Expense) => {
-  if (isEditing.value && editingId.value) {
-    const index = expenses.value.findIndex(item => item.id === editingId.value);
-    if (index !== -1) {
-      expenses.value[index] = { ...expenseData, id: editingId.value };
-    }
-  } else {
-    expenses.value.push({
-      ...expenseData,
-      id: Date.now().toString()
-    });
+let unsubscribeConnection: (() => void) | null = null;
+let unsubscribeExpenses: (() => void) | null = null;
+
+onMounted(() => {
+  unsubscribeConnection = checkFirebaseConnection((status) => {
+    isConnected.value = status;
+  });
+  unsubscribeExpenses = subscribeToExpenses((storedExpenses) => {
+    expenses.value = storedExpenses;
+  });
+});
+
+onUnmounted(() => {
+  if (unsubscribeConnection) {
+    unsubscribeConnection();
   }
-  resetSelection();
+  if (unsubscribeExpenses) {
+    unsubscribeExpenses();
+  }
+});
+
+const handleSaveExpense = async (expenseData: Expense) => {
+  try {
+    await saveExpense({
+      ...expenseData,
+      id: isEditing.value ? editingId.value || undefined : undefined,
+    });
+    resetSelection();
+  } catch (error) {
+    console.error('Failed to save expense:', error);
+    alert('Unable to save the expense. Check your Firebase Realtime Database rules.');
+  }
 };
 
 const handleEditExpense = (expense: Expense) => {
@@ -61,11 +92,17 @@ const handleEditExpense = (expense: Expense) => {
   selectedExpense.value = { ...expense };
 };
 
-const handleDeleteExpense = (id?: string) => {
+const handleDeleteExpense = async (id?: string) => {
   if (!id) return;
-  expenses.value = expenses.value.filter(item => item.id !== id);
-  if (editingId.value === id) {
-    resetSelection();
+
+  try {
+    await deleteExpense(id);
+    if (editingId.value === id) {
+      resetSelection();
+    }
+  } catch (error) {
+    console.error('Failed to delete expense:', error);
+    alert('Unable to delete the expense. Check your Firebase Realtime Database rules.');
   }
 };
 

@@ -7,6 +7,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+
 jobs:
   build-apk:
 
@@ -31,12 +35,28 @@ jobs:
           cache: 'npm'
 
 
+      - uses: android-actions/setup-android@v3
+     
+
+
       # ----------------------------------------------------------
       # 3. Install project dependencies
       # ----------------------------------------------------------
       - name: Install npm dependencies
         run: npm ci
 
+       # ----------------------------------------------------------
+      # 4. Configure Firebase
+      # ----------------------------------------------------------
+      - name: Configure Firebase
+        env:
+           FIREBASE_ENV: ${{ secrets.FIREBASE_ENV }}
+        run: |
+           test -n "$FIREBASE_ENV" || { 
+              echo "Add the FIREBASE_ENV repository secret" 
+              exit 1 
+           }
+           printf '%s\n' "$FIREBASE_ENV" > .env
 
       # ----------------------------------------------------------
       # 4. Build Ionic/Vue application
@@ -114,4 +134,4 @@ jobs:
           name: PersonalExpenseTracker-APK
           path: PersonalExpenseTracker.apk
           if-no-files-found: error
-          retention-days: 30
+          
