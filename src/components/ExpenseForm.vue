@@ -1,11 +1,13 @@
 <template>
-  <ion-card>
+  <ion-card class="expense-form-card">
     <ion-card-header>
+      <p class="form-kicker">{{ isEditing ? 'UPDATE ENTRY' : 'NEW ENTRY' }}</p>
       <ion-card-title>{{ isEditing ? 'Edit Expense' : 'Record New Expense' }}</ion-card-title>
+      <p class="form-hint">Add the details you will want to remember later.</p>
     </ion-card-header>
     <ion-card-content>
       <!-- Expense Name -->
-      <ion-item>
+      <ion-item lines="none" class="form-field">
         <ion-label position="stacked">Expense Name</ion-label>
         <ion-input 
           :value="form.name" 
@@ -16,7 +18,7 @@
       </ion-item>
 
       <!-- Amount -->
-      <ion-item>
+      <ion-item lines="none" class="form-field">
         <ion-label position="stacked">Amount</ion-label>
         <ion-input 
           :value="form.amount" 
@@ -27,7 +29,7 @@
       </ion-item>
 
       <!-- Category -->
-      <ion-item>
+      <ion-item lines="none" class="form-field">
         <ion-label position="stacked">Category</ion-label>
         <ion-select 
           :value="form.category" 
@@ -42,7 +44,7 @@
       </ion-item>
 
       <!-- Date -->
-      <ion-item>
+      <ion-item lines="none" class="form-field">
         <ion-label position="stacked">Date</ion-label>
         <ion-input 
           :value="form.date" 
@@ -52,7 +54,7 @@
       </ion-item>
 
       <!-- Notes -->
-      <ion-item>
+      <ion-item lines="none" class="form-field">
         <ion-label position="stacked">Notes</ion-label>
         <ion-textarea 
           :value="form.notes" 
@@ -62,10 +64,10 @@
       </ion-item>
 
       <!-- Action Buttons -->
-      <ion-button expand="full" class="ion-margin-top" @click="handleSubmit">
+      <ion-button expand="block" class="save-button ion-margin-top" @click="handleSubmit">
         {{ isEditing ? 'Update Expense' : 'Save Expense' }}
       </ion-button>
-      <ion-button v-if="isEditing" expand="full" color="light" @click="$emit('cancel')">
+      <ion-button v-if="isEditing" expand="block" fill="clear" class="cancel-button" @click="$emit('cancel')">
         Cancel
       </ion-button>
     </ion-card-content>
@@ -158,3 +160,77 @@ const handleSubmit = () => {
   emit('submit', { ...form.value });
 };
 </script>
+
+<style scoped>
+.expense-form-card ion-card-header {
+  padding: 26px 26px 12px;
+}
+
+.form-kicker {
+  margin: 0 0 8px;
+  color: var(--ion-color-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.expense-form-card ion-card-title {
+  color: var(--tracker-ink);
+  font-size: 1.4rem;
+  font-weight: 750;
+}
+
+.form-hint {
+  margin: 8px 0 0;
+  color: var(--tracker-muted);
+  font-size: 0.82rem;
+}
+
+.expense-form-card ion-card-content {
+  padding: 12px 26px 26px;
+}
+
+.form-field {
+  --background: #f6f8f5;
+  --padding-start: 14px;
+  --inner-padding-end: 12px;
+  --min-height: 62px;
+  margin: 10px 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.form-field:focus-within {
+  --background: #ffffff;
+  border-color: var(--ion-color-primary);
+}
+
+.form-field ion-label {
+  margin-bottom: 4px;
+  color: var(--tracker-muted) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+}
+
+.form-field ion-input,
+.form-field ion-select,
+.form-field ion-textarea {
+  --color: var(--tracker-ink);
+  font-size: 0.94rem;
+}
+
+.save-button {
+  --background: var(--ion-color-primary);
+  --border-radius: 10px;
+  height: 49px;
+  margin-top: 18px;
+  font-weight: 750;
+  text-transform: none;
+}
+
+.cancel-button {
+  --color: var(--tracker-muted);
+  font-size: 0.84rem;
+  text-transform: none;
+}
+</style>
